@@ -1,0 +1,4 @@
+Revision history for Perl extension DBIx::HTML::ClientDB.
+
+1.00  Tue Oct 15 12:37:29 2002
+	- original version

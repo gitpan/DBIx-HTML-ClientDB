@@ -1,0 +1,312 @@
+<HTML>
+<HEAD>
+<TITLE>C<DBIx::HTML::ClientDB> - Convert sql into a client-side db with keyed access.</TITLE>
+<LINK REV="made" HREF="mailto:">
+</HEAD>
+
+<BODY>
+
+<A NAME="__index__"></A>
+<!-- INDEX BEGIN -->
+
+<UL>
+
+	<LI><A HREF="#name">NAME</A></LI>
+	<LI><A HREF="#synopsis">Synopsis</A></LI>
+	<LI><A HREF="#description">Description</A></LI>
+	<LI><A HREF="#distributions">Distributions</A></LI>
+	<LI><A HREF="#usage">Usage</A></LI>
+	<LI><A HREF="#options">Options</A></LI>
+	<LI><A HREF="#methods">Methods</A></LI>
+	<LI><A HREF="#sample code">Sample Code</A></LI>
+	<LI><A HREF="#see also">See Also</A></LI>
+	<LI><A HREF="#author">Author</A></LI>
+	<LI><A HREF="#copyright">Copyright</A></LI>
+</UL>
+<!-- INDEX END -->
+
+<HR>
+<P>
+<H1><A NAME="name">NAME</A></H1>
+<P><CODE>DBIx::HTML::ClientDB</CODE> - Convert sql into a client-side db with keyed access.</P>
+<P>
+<HR>
+<H1><A NAME="synopsis">Synopsis</A></H1>
+<PRE>
+        use DBIx::HTML::ClientDB;</PRE>
+<PRE>
+        my($object) = DBIx::HTML::ClientDB -&gt; new
+        (
+                dbh          =&gt; $dbh,
+                row_headings =&gt; 'Unit code,Unit code,Campus name,Unit name',
+                sql          =&gt; 'select unit_code, unit_code, campus_name, unit_name ' .
+                                'from unit, campus where unit_campus_id = campus_id ' .
+                                'order by unit_code',
+        );</PRE>
+<PRE>
+        print $object -&gt; javascript_for_client_db();
+        print $object -&gt; table();
+        print $object -&gt; javascript_for_client_init();</PRE>
+<P>
+<HR>
+<H1><A NAME="description">Description</A></H1>
+<P>This module takes a db handle, an SQL statement and a specially-formatted
+row_headings parameter, and builds an array of rows as returned by the SQL.</P>
+<P>Then you ask for that array in HTML, ie as a table.</P>
+<P>After a call to the <A HREF="#item_table"><CODE>table()</CODE></A> method, you can call the <A HREF="#item_size"><CODE>size()</CODE></A> method if
+you need to check how many rows were returned by the SQL you used.</P>
+<P>Neither the module CGI.pm, nor any of that kidney, are used by this module.
+We simply output pure HTML.</P>
+<P>However, for simplicity, this document pretends you are using CGI.pm rather
+than an alternative. The sentences would become too convoluted otherwise.</P>
+<P>The output table is formatted as N rows of 2 columns:</P>
+<DL>
+<DT><STRONG><A NAME="item_First_column">First column</A></STRONG><BR>
+<DD>
+The first column contains the row headings you supply in the 'row_headings' parameter.
+'row_headings' is a comma-separated list of strings you want to appear in the first
+column of the table.
+<P>There must be one string in 'row_headings' for each column mentioned in the SQL.</P>
+<P></P>
+<DT><STRONG><A NAME="item_Second_column">Second column</A></STRONG><BR>
+<DD>
+The second column contains the 'current record' in the database.
+<P></P></DL>
+<P>Now for the rows:</P>
+<DL>
+<DT><STRONG><A NAME="item_First_row">First row</A></STRONG><BR>
+<DD>
+The first row contains the first prompt string in the first column.
+<P>The first row contains a HTML popup menu in the second column.</P>
+<P>This menu is what you use to choose the 'current record' in the database.</P>
+<P>Since two (2) SQL columns are used to build this menu, two (2) strings from
+the row_headings parameter are consumed building the first row. The first of
+these 2 strings appears in the first column, as explained above. The second
+of these 2 strings is, much to your amazement, discarded!</P>
+<P>This way of doing things makes it easy for you to count row_heading strings and
+their corresponding SQL columns, and makes it easy for me to cross-check your
+ability to count to 2 :-).</P>
+<P></P>
+<DT><STRONG><A NAME="item_Other_rows">Other rows</A></STRONG><BR>
+<DD>
+Each other row contains a field in the 'current record'. The value in the first
+column comes from the row_headings parameter, and the value in the second column
+comes from the database.
+<P></P></DL>
+<P>The sum result is menu-driven access to the data returned by the SQL. All this
+is downloaded from your CGI script to the web client. Since changing the current
+menu item updates the other fields in this table using JavaScript, no message is
+sent to the web server, and hence you have maximum speed of access.</P>
+<P>The whole point of the exercise is to give you simple code for simple access to
+simple data.</P>
+<P>See examples/test-clientdb.cgi for an example which will make all this clear.</P>
+<P>
+<HR>
+<H1><A NAME="distributions">Distributions</A></H1>
+<P>This module is available both as a Unix-style distro (*.tgz) and an
+ActiveState-style distro (*.ppd). The latter is shipped in a *.zip file.</P>
+<P>See <A HREF="http://savage.net.au/Perl-modules/html/installing-a-module.html">http://savage.net.au/Perl-modules/html/installing-a-module.html</A> for
+help on unpacking and installing each type of distro.</P>
+<P>
+<HR>
+<H1><A NAME="usage">Usage</A></H1>
+<P>You create an object of the class by calling the constructor, 'new'.</P>
+<P>Now call various methods to get the HTML and JavaScript.</P>
+<P>Lastly, display the HTML as part of a form. You don't need a submit button
+because there is no need to transmit your menu selection to the CGI script.
+It's all about convenient access to a small database. Of course, you can
+easily use this as the basis of a more complex record-selection system.</P>
+<P>Instead of the method javascript_for_client_init(), you can call the method
+<A HREF="#item_javascript_for_client_on_load"><CODE>javascript_for_client_on_load()</CODE></A> to initialize a JavaScript onLoad event handler.</P>
+<P>Note: The HTML menu name and all JavaScript function and global variable names
+have been deliberately chosen so as to not clash with other modules of mine in the
+DBIx::HTML::* namespace. Hence these modules can, in theory, all be used to build a
+single web page, and indeed, can (I hope) all be used to build a single form. No,
+I didn't actually test it.</P>
+<P>
+<HR>
+<H1><A NAME="options">Options</A></H1>
+<P>Here, in alphabetical order, are the options accepted by the constructor,
+together with their default values.</P>
+<DL>
+<DT><STRONG><A NAME="item_border_%3D%3E_0">border =&gt; 0</A></STRONG><BR>
+<DD>
+This specifies whether or not the HTML table returned by the <A HREF="#item_table"><CODE>table()</CODE></A> method
+has the border option set.
+<P>Valid values are 0 and 1.</P>
+<P>This option is not mandatory.</P>
+<P></P>
+<DT><STRONG><A NAME="item_dbh_%3D%3E_%27%27">dbh =&gt; ''</A></STRONG><BR>
+<DD>
+Pass in an open database handle.
+<P>This option is mandatory.</P>
+<P></P>
+<DT><STRONG><A NAME="item_default_%3D%3E_%27%27">default =&gt; ''</A></STRONG><BR>
+<DD>
+Pass in the string (from SQL column 2) which is to be the default item on the
+popup menu. You supply here the visible menu item, not the value associated with
+that menu item.
+<P>If default is not given a value, the first menu item becomes the default.</P>
+<P>See the discussion of the sql option for details about the menu items.</P>
+<P>This option is not mandatory.</P>
+<P></P>
+<DT><STRONG><A NAME="item_form_name_%3D%3E_%27dbix_client_form%27">form_name =&gt; 'dbix_client_form'</A></STRONG><BR>
+<DD>
+The value of this parameter becomes the name of the form used in the
+JavaScript, and must be the name used by you in your call to CGI's <CODE>start_form()</CODE>
+or <CODE>start_multipart_form()</CODE> method.
+<P>This option is not mandatory, since it has a default value.</P>
+<P></P>
+<DT><STRONG><A NAME="item_max_width_%3D%3E_0">max_width =&gt; 0</A></STRONG><BR>
+<DD>
+When the database field values displayed in the second column of the table are
+input fields, this value becomes the 'size' parameter of those input fields.
+<P>A value of 0 means the data will be scanned and a value chosen which ensures
+no data is truncated in order to display the database field values.</P>
+<P>This option is not mandatory.</P>
+<P></P>
+<DT><STRONG><A NAME="item_menu_name_%3D%3E_%27dbix_client_menu%27">menu_name =&gt; 'dbix_client_menu'</A></STRONG><BR>
+<DD>
+The value of this parameter is what you would pass into a CGI object when you
+call its <A HREF="#item_param"><CODE>param()</CODE></A> method to retrieve the user's selection.
+<P>Hence you would do something like:</P>
+<PRE>
+        my($name)   = 'fancy_menu';
+        my($object) = DBIx::HTML::ClientDB -&gt; new(menu_name =&gt; $name, ...);
+        my($q)      = CGI -&gt; new();
+        my($id)     = $q -&gt; param($name) || '';</PRE>
+<P>This option is not mandatory, since it has a default value.</P>
+<P></P>
+<DT><STRONG><A NAME="item_row_headings_%3D%3E_%27a%2Cb%2C%2E%2E%2E%27">row_headings =&gt; 'a,b,...'</A></STRONG><BR>
+<DD>
+Pass in a comma-separated list of strings to use in the first column of the table.
+<P>There must be one string in 'row_headings' for each column mentioned in the SQL.</P>
+<P>Since two (2) SQL columns are used to build the menu, two (2) strings from
+the row_headings parameter are consumed building the first row. The first of
+these 2 strings appears in the first column, as explained above. The second
+of these 2 strings is, much to your amazement, discarded!</P>
+<P>This way of doing things makes it easy for you to count row_heading strings and
+their corresponding SQL columns, and makes it easy for me to cross-check your
+ability to count to 2 :-).</P>
+<P>This option is mandatory.</P>
+<P></P>
+<DT><STRONG><A NAME="item_sql_%3D%3E_%27%27">sql =&gt; ''</A></STRONG><BR>
+<DD>
+Pass in the SQL used to select the data.
+<P>The SQL must select at least 2 columns. The first will be used as the value returned by
+a CGI object, for example, when you call its <A HREF="#item_param"><CODE>param()</CODE></A> method. The second value
+will be used as the visible selection offered to the user on the menu.</P>
+<P>Of course, the 2 columns selected could be the same:</P>
+<PRE>
+        $obj -&gt; set(sql =&gt; 'select campus_name, campus_name from campus ' .
+                                        'order by campus_name');</PRE>
+<P>But normally you would do this:</P>
+<PRE>
+        $obj -&gt; set(sql =&gt; 'select campus_id, campus_name from campus ' .
+                                        'order by campus_name');</PRE>
+<P>This means that the second column is used to construct visible menu items, and
+when an item is selected by the user, the first column is what is returned to your
+CGI script.</P>
+<P>The question remains: After you do something like this:</P>
+<PRE>
+        my($q)     = CGI -&gt; new();
+        my($id)    = $q -&gt; param('dbxi_client_menu') || '';</PRE>
+<P>how do you convert the value, eg campus_id, back into the database fields associated
+with the visible menu item, eg campus_name.</P>
+<P>Simple: You call the <A HREF="#item_param"><CODE>param()</CODE></A> method of the DBIx::HTML::ClientDB class:</P>
+<PRE>
+        my(@field) = $object -&gt; param($id);</PRE>
+<P>The <A HREF="#item_param"><CODE>param()</CODE></A> method returns () if the value of $id is unknown.</P>
+<P>This option is mandatory.</P>
+<P></P></DL>
+<P>
+<HR>
+<H1><A NAME="methods">Methods</A></H1>
+<DL>
+<DT><STRONG><A NAME="item_javascript_for_client_db"><CODE>javascript_for_client_db()</CODE></A></STRONG><BR>
+<DD>
+Returns JavaScript, including the &lt;script&gt;...&lt;/script&gt; tags, which holds your data in a
+JavaScript db, and includes some JavaScript functions.
+<P>Output it somewhere suitable on your page.</P>
+<P></P>
+<DT><STRONG><A NAME="item_javascript_for_client_init"><CODE>javascript_for_client_init()</CODE></A></STRONG><BR>
+<DD>
+Returns JavaScript, including the &lt;script&gt;...&lt;/script&gt; tags, which holds the function call
+to a function which initializes the menu. The function itself is included in
+the code returned by javascript_for_client_db().
+<P>Output it somewhere suitable on your page after you have output the string returned from
+javascript_for_db().</P>
+<P>Calling this method is optional. If you do not call it, then calling the method
+<A HREF="#item_javascript_for_client_on_load"><CODE>javascript_for_client_on_load()</CODE></A> is mandatory.</P>
+<P></P>
+<DT><STRONG><A NAME="item_javascript_for_client_on_load"><CODE>javascript_for_client_on_load()</CODE></A></STRONG><BR>
+<DD>
+Returns a string to be used as a &lt;body&gt; tag's onLoad event handler. It calls the
+function which initializes the menu. The function itself is included in
+the code returned by javascript_for_db().
+<P>Output it as part of the &lt;body&gt; tag. See examples/test-clientdb.cgi for an
+example.</P>
+<P>Calling this method is optional. If you do not call it, then calling the method
+<A HREF="#item_javascript_for_client_init"><CODE>javascript_for_client_init()</CODE></A> is mandatory.</P>
+<P></P>
+<DT><STRONG><A NAME="item_new"><CODE>new(%arg)</CODE></A></STRONG><BR>
+<DD>
+The constructor.
+<P>See the previous section for details of the parameters.</P>
+<P></P>
+<DT><STRONG><A NAME="item_param"><CODE>param($id)</CODE></A></STRONG><BR>
+<DD>
+Returns an array of database fields corresponding to the menu value chosen.
+<P>Call this to convert the value returned to the CGI script when the user
+selected a menu item, into the database fields which appeared in the second
+column of the table.</P>
+<P>In other words, convert the first column of the SQL into the values of all the
+columns corresponding to that first column.</P>
+<P></P>
+<DT><STRONG><A NAME="item_size"><CODE>size()</CODE></A></STRONG><BR>
+<DD>
+Return the number of rows returned by your SQL.
+<P>Call this after calling 'table'.</P>
+<P>It will tell you whether or not your menu is empty.</P>
+<P></P>
+<DT><STRONG><A NAME="item_table"><CODE>table()</CODE></A></STRONG><BR>
+<DD>
+Return the HTML for the table.
+<P></P></DL>
+<P>
+<HR>
+<H1><A NAME="sample code">Sample Code</A></H1>
+<P>See examples/test-clientdb.cgi for a complete program.</P>
+<P>You will need to run examples/bootstrap-menus.pl to load the 'test'
+database, 'campus' and 'unit' tables, with sample data.</P>
+<P>You'll have to patch these 2 programs vis-a-vis the db vendor, username
+and password.</P>
+<P>The sample data in bootstrap-menus.pl is simple, but is used by several
+modules, so don't be too keen on changing it :-).</P>
+<P>
+<HR>
+<H1><A NAME="see also">See Also</A></H1>
+<PRE>
+        DBIx::HTML::LinkedMenus
+        DBIx::HTML::PopupRadio
+        DBIx::CSS::TreeMenu
+        DBIx::CSS::TabMenu</PRE>
+<P>The latter 2 modules will be released after the current one.</P>
+<P>
+<HR>
+<H1><A NAME="author">Author</A></H1>
+<P><CODE>DBIx::HTML::ClientDB</CODE> was written by Ron Savage <EM>&lt;<A HREF="mailto:ron@savage.net.au">ron@savage.net.au</A>&gt;</EM> in 2002.</P>
+<P>Home page: <A HREF="http://savage.net.au/index.html">http://savage.net.au/index.html</A></P>
+<P>
+<HR>
+<H1><A NAME="copyright">Copyright</A></H1>
+<P>Austrlian copyright (c) 2002, Ron Savage. All rights reserved.</P>
+<PRE>
+        All Programs of mine are 'OSI Certified Open Source Software';
+        you can redistribute them and/or modify them under the terms of
+        The Artistic License, a copy of which is available at:
+        <A HREF="http://www.opensource.org/licenses/index.html">http://www.opensource.org/licenses/index.html</A></PRE>
+
+</BODY>
+
+</HTML>
