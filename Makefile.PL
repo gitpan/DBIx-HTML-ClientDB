@@ -8,7 +8,7 @@ WriteMakefile
 	($] ge '5.005') ?
 	(
 		'AUTHOR' => 'Ron Savage (ron@savage.net.au)',
-		'ABSTRACT' => 'Convert sql into a JavaScript database',
+		'ABSTRACT' => 'Convert SQL into a JavaScript database',
     ) : (),
 	clean				=>
 	{

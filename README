@@ -302,12 +302,9 @@ Sample Code
     modules, so don't be too keen on changing it :-).
 
 See Also
+            CGI::Explorer
             DBIx::HTML::LinkedMenus
             DBIx::HTML::PopupRadio
-            DBIx::CSS::TreeMenu
-            DBIx::CSS::TabMenu
-
-    The latter 2 modules will be released after the current one.
 
 Author
     "DBIx::HTML::ClientDB" was written by Ron Savage *<ron@savage.net.au>*
