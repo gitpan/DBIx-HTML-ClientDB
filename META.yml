@@ -1,0 +1,15 @@
+--- #YAML:1.0
+name: DBIx-HTML-ClientDB
+version: 1.04
+author:
+  - Ron Savage <ron@savage.net.au>
+abstract: |-
+  Convert sql into a client-side db with keyed access.
+license: artistic
+requires:
+  Carp: 0
+build_requires:
+  Test::More: 0
+  Test::Pod: 0
+provides: {}
+generated_by: Module::Build version 0.24

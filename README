@@ -1,322 +1,56 @@
-NAME
-    "DBIx::HTML::ClientDB" - Convert sql into a client-side db with keyed
-    access.
+README file for DBIx::HTML::ClientDB.
 
-Synopsis
-            use DBIx::HTML::ClientDB;
+Warning: WinZip 8.1 and 9.0 both contain an 'accidental' bug which stops
+them recognizing POSIX-style directory structures in valid tar files.
+You are better off using a reliable tool such as InfoZip:
+ftp://ftp.info-zip.org/pub/infozip/
 
-            my($object) = DBIx::HTML::ClientDB -> new
-            (
-                    dbh          => $dbh,
-                    row_headings => 'Unit code,Unit code,Campus name,Unit name',
-                    sql          => 'select unit_code, unit_code, campus_name, unit_name ' .
-                                    'from unit, campus where unit_campus_id = campus_id ' .
-                                    'order by unit_code',
-            );
+1 Installing from a Unix-like distro
+------------------------------------
+shell>gunzip DBIx-HTML-ClientDB-1.04.tgz
+shell>tar mxvf DBIx-HTML-ClientDB-1.04.tar
 
-            print $object -> javascript_for_client_db();
-            print $object -> table();
-            print $object -> javascript_for_client_init();
+On Unix-like systems, assuming you have installed Module::Build V 0.25+:
 
-Description
-    This module takes a db handle, an SQL statement and a
-    specially-formatted row_headings parameter, and builds an array of rows
-    as returned by the SQL.
+shell>perl Build.PL
+shell>./Build
+shell>./Build test
+shell>./Build install
 
-    Then you ask for that array in HTML, ie as a table.
+On MS Windows-like systems, assuming you have installed Module::Build V 0.25+:
 
-    After a call to the table() method, you can call the size() method if
-    you need to check how many rows were returned by the SQL you used.
+shell>perl Build.PL
+shell>perl Build
+shell>perl Build test
+shell>perl Build install
 
-    Neither the module CGI.pm, nor any of that kidney, are used by this
-    module. We simply output pure HTML.
+Alternately, without Module::Build, you do this:
 
-    However, for simplicity, this document pretends you are using CGI.pm
-    rather than an alternative. The sentences would become too convoluted
-    otherwise.
+Note: 'make' on MS Windows-like systems may be called 'nmake' or 'dmake'.
 
-    The output table is formatted as N rows of 2 columns:
+shell>perl Makefile.PL
+shell>make
+shell>make test
+shell>su              (for Unix-like systems)
+shell>make install
+shell>exit            (for Unix-like systems)
 
-    First column
-        The first column contains the row headings you supply in the
-        'row_headings' parameter. 'row_headings' is a comma-separated list
-        of strings you want to appear in the first column of the table.
+On all systems:
 
-        There must be one string in 'row_headings' for each column mentioned
-        in the SQL.
+Run ClientDB.pm through you favourite pod2html translator.
 
-    Second column
-        The second column contains the 'current record' in the database.
+If you are using my fancy-pom2.pl, with its 'default.css' file installed in
+/apache2/htdocs/css/, you'd do:
 
-    Now for the rows:
+shell>perl fancy-pom2.pl html -css ClientDB.pm > /apache2/htdocs/ClientDB.html
 
-    First row
-        The first row contains the first prompt string in the first column.
+or perhaps something like:
 
-        The first row contains a HTML popup menu in the second column.
+shell>perl fancy-pom2.pl html -css ClientDB.pm > /perl/html/site/lib/DBIx/HTML/ClientDB.html
 
-        This menu is what you use to choose the 'current record' in the
-        database.
-
-        Since two (2) SQL columns are used to build this menu, two (2)
-        strings from the row_headings parameter are consumed building the
-        first row. The first of these 2 strings appears in the first column,
-        as explained above. The second of these 2 strings is, much to your
-        amazement, discarded!
-
-        This way of doing things makes it easy for you to count row_heading
-        strings and their corresponding SQL columns, and makes it easy for
-        me to cross-check your ability to count to 2 :-).
-
-    Other rows
-        Each other row contains a field in the 'current record'. The value
-        in the first column comes from the row_headings parameter, and the
-        value in the second column comes from the database.
-
-    The sum result is menu-driven access to the data returned by the SQL.
-    All this is downloaded from your CGI script to the web client. Since
-    changing the current menu item updates the other fields in this table
-    using JavaScript, no message is sent to the web server, and hence you
-    have maximum speed of access.
-
-    The whole point of the exercise is to give you simple code for simple
-    access to simple data.
-
-    See examples/test-clientdb.cgi for an example which will make all this
-    clear.
-
-Distributions
-    This module is available both as a Unix-style distro (*.tgz) and an
-    ActiveState-style distro (*.ppd). The latter is shipped in a *.zip file.
-
-    See http://savage.net.au/Perl-modules/html/installing-a-module.html for
-    help on unpacking and installing each type of distro.
-
-Usage
-    You create an object of the class by calling the constructor, 'new'.
-
-    Now call various methods to get the HTML and JavaScript.
-
-    Lastly, display the HTML as part of a form. You don't need a submit
-    button because there is no need to transmit your menu selection to the
-    CGI script. It's all about convenient access to a small database. Of
-    course, you can easily use this as the basis of a more complex
-    record-selection system.
-
-    Instead of the method javascript_for_client_init(), you can call the
-    method javascript_for_client_on_load() to initialize a JavaScript onLoad
-    event handler.
-
-    Note: The HTML menu name and all JavaScript function and global variable
-    names have been deliberately chosen so as to not clash with other
-    modules of mine in the DBIx::HTML::* namespace. Hence these modules can,
-    in theory, all be used to build a single web page, and indeed, can (I
-    hope) all be used to build a single form. No, I didn't actually test it.
-
-Options
-    Here, in alphabetical order, are the options accepted by the
-    constructor, together with their default values.
-
-    border => 0
-        This specifies whether or not the HTML table returned by the table()
-        method has the border option set.
-
-        Valid values are 0 and 1.
-
-        This option is not mandatory.
-
-    dbh => ''
-        Pass in an open database handle.
-
-        This option is mandatory.
-
-    default => ''
-        Pass in the string (from SQL column 2) which is to be the default
-        item on the popup menu. You supply here the visible menu item, not
-        the value associated with that menu item.
-
-        If default is not given a value, the first menu item becomes the
-        default.
-
-        See the discussion of the sql option for details about the menu
-        items.
-
-        This option is not mandatory.
-
-    form_name => 'dbix_client_form'
-        The value of this parameter becomes the name of the form used in the
-        JavaScript, and must be the name used by you in your call to CGI's
-        start_form() or start_multipart_form() method.
-
-        This option is not mandatory, since it has a default value.
-
-    max_width => 0
-        When the database field values displayed in the second column of the
-        table are input fields, this value becomes the 'size' parameter of
-        those input fields.
-
-        A value of 0 means the data will be scanned and a value chosen which
-        ensures no data is truncated in order to display the database field
-        values.
-
-        This option is not mandatory.
-
-    menu_name => 'dbix_client_menu'
-        The value of this parameter is what you would pass into a CGI object
-        when you call its param() method to retrieve the user's selection.
-
-        Hence you would do something like:
-
-                my($name)   = 'fancy_menu';
-                my($object) = DBIx::HTML::ClientDB -> new(menu_name => $name, ...);
-                my($q)      = CGI -> new();
-                my($id)     = $q -> param($name) || '';
-
-        This option is not mandatory, since it has a default value.
-
-    row_headings => 'a,b,...'
-        Pass in a comma-separated list of strings to use in the first column
-        of the table.
-
-        There must be one string in 'row_headings' for each column mentioned
-        in the SQL.
-
-        Since two (2) SQL columns are used to build the menu, two (2)
-        strings from the row_headings parameter are consumed building the
-        first row. The first of these 2 strings appears in the first column,
-        as explained above. The second of these 2 strings is, much to your
-        amazement, discarded!
-
-        This way of doing things makes it easy for you to count row_heading
-        strings and their corresponding SQL columns, and makes it easy for
-        me to cross-check your ability to count to 2 :-).
-
-        This option is mandatory.
-
-    sql => ''
-        Pass in the SQL used to select the data.
-
-        The SQL must select at least 2 columns. The first will be used as
-        the value returned by a CGI object, for example, when you call its
-        param() method. The second value will be used as the visible
-        selection offered to the user on the menu.
-
-        Of course, the 2 columns selected could be the same:
-
-                $obj -> set(sql => 'select campus_name, campus_name from campus ' .
-                                                'order by campus_name');
-
-        But normally you would do this:
-
-                $obj -> set(sql => 'select campus_id, campus_name from campus ' .
-                                                'order by campus_name');
-
-        This means that the second column is used to construct visible menu
-        items, and when an item is selected by the user, the first column is
-        what is returned to your CGI script.
-
-        The question remains: After you do something like this:
-
-                my($q)     = CGI -> new();
-                my($id)    = $q -> param('dbxi_client_menu') || '';
-
-        how do you convert the value, eg campus_id, back into the database
-        fields associated with the visible menu item, eg campus_name.
-
-        Simple: You call the param() method of the DBIx::HTML::ClientDB
-        class:
-
-                my(@field) = $object -> param($id);
-
-        The param() method returns () if the value of $id is unknown.
-
-        This option is mandatory.
-
-Methods
-    javascript_for_client_db()
-        Returns JavaScript, including the <script>...</script> tags, which
-        holds your data in a JavaScript db, and includes some JavaScript
-        functions.
-
-        Output it somewhere suitable on your page.
-
-    javascript_for_client_init()
-        Returns JavaScript, including the <script>...</script> tags, which
-        holds the function call to a function which initializes the menu.
-        The function itself is included in the code returned by
-        javascript_for_client_db().
-
-        Output it somewhere suitable on your page after you have output the
-        string returned from javascript_for_db().
-
-        Calling this method is optional. If you do not call it, then calling
-        the method javascript_for_client_on_load() is mandatory.
-
-    javascript_for_client_on_load()
-        Returns a string to be used as a <body> tag's onLoad event handler.
-        It calls the function which initializes the menu. The function
-        itself is included in the code returned by javascript_for_db().
-
-        Output it as part of the <body> tag. See examples/test-clientdb.cgi
-        for an example.
-
-        Calling this method is optional. If you do not call it, then calling
-        the method javascript_for_client_init() is mandatory.
-
-    new(%arg)
-        The constructor.
-
-        See the previous section for details of the parameters.
-
-    param($id)
-        Returns an array of database fields corresponding to the menu value
-        chosen.
-
-        Call this to convert the value returned to the CGI script when the
-        user selected a menu item, into the database fields which appeared
-        in the second column of the table.
-
-        In other words, convert the first column of the SQL into the values
-        of all the columns corresponding to that first column.
-
-    size()
-        Return the number of rows returned by your SQL.
-
-        Call this after calling 'table'.
-
-        It will tell you whether or not your menu is empty.
-
-    table()
-        Return the HTML for the table.
-
-Sample Code
-    See examples/test-clientdb.cgi for a complete program.
-
-    You will need to run examples/bootstrap-menus.pl to load the 'test'
-    database, 'campus' and 'unit' tables, with sample data.
-
-    You'll have to patch these 2 programs vis-a-vis the db vendor, username
-    and password.
-
-    The sample data in bootstrap-menus.pl is simple, but is used by several
-    modules, so don't be too keen on changing it :-).
-
-See Also
-            CGI::Explorer
-            DBIx::HTML::LinkedMenus
-            DBIx::HTML::PopupRadio
-
-Author
-    "DBIx::HTML::ClientDB" was written by Ron Savage *<ron@savage.net.au>*
-    in 2002.
-
-    Home page: http://savage.net.au/index.html
-
-Copyright
-    Australian copyright (c) 2002, Ron Savage. All rights reserved.
-
-            All Programs of mine are 'OSI Certified Open Source Software';
-            you can redistribute them and/or modify them under the terms of
-            The Artistic License, a copy of which is available at:
-            http://www.opensource.org/licenses/index.html
-
+2 Installing from an ActiveState distro
+---------------------------------------
+shell>unzip DBIx-HTML-ClientDB-1.04.zip
+shell>ppm install --location=. DBIx-HTML-ClientDB
+shell>del DBIx-HTML-ClientDB-1.04.ppd
+shell>del PPM-DBIx-HTML-ClientDB-1.04.tar.gz

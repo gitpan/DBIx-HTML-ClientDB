@@ -1,10 +1,12 @@
+Build.PL
 Changes.txt
-ClientDB.pm
-test.pl
-Makefile.PL
-ClientDB.html
-MANIFEST
-README
-t/test.t
 examples/bootstrap-menus.pl
 examples/test-clientdb.cgi
+lib/DBIx/HTML/ClientDB.pm
+Makefile.PL
+MANIFEST			This list of files
+MANIFEST.SKIP
+META.yml
+README
+t/pod.t
+t/test.t
